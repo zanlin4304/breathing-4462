@@ -278,26 +278,39 @@
 
 <script>
     let audioCtx = null;
+    let masterBus = null;
+    // 頌缽的基音 + 兩個泛音 [頻率倍數, 音量, 衰減長度比例]。
+    // 手機喇叭播不出低頻，加上泛音聲音才清楚；音量總和約 0.95，比原本的 0.3 大約 3 倍。
+    const BOWL_PARTIALS = [[1, 0.6, 1], [2.76, 0.25, 0.7], [5.4, 0.1, 0.45]];
+
     function playBowlTone(frequency = 174, duration = 3.5) {
         try {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                // 壓縮器當保險，避免疊音時破音
+                masterBus = audioCtx.createDynamicsCompressor();
+                masterBus.connect(audioCtx.destination);
+            }
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+            const now = audioCtx.currentTime;
+            BOWL_PARTIALS.forEach(([ratio, level, decay]) => {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
 
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(frequency * ratio, now);
 
-            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.2);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(level, now + 0.2);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration * decay);
 
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+                osc.connect(gainNode);
+                gainNode.connect(masterBus);
 
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
+                osc.start(now);
+                osc.stop(now + duration * decay);
+            });
 
             const container = document.getElementById('masterContainer');
             container.classList.add('active');
