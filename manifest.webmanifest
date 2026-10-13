@@ -1,0 +1,17 @@
+{
+  "name": "4-4-6-2 呼吸法",
+  "short_name": "呼吸法",
+  "description": "跟著圓形光軌與頌缽音律，進行 4-4-6-2 呼吸練習",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "lang": "zh-TW",
+  "background_color": "#24292E",
+  "theme_color": "#24292E",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
